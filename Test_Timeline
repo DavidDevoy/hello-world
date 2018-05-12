@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <style>
+    body { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; }
+    svg { width:100%; height: 100% }
+    
+    
+    .axis path,
+.axis line {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font-family: sans-serif;
+  font-size: 11px;
+  transform: rotate(45 0 0)
+}
+
+.events line, .events circle {
+  stroke: darkslategray;
+}
+
+.events circle {
+  fill: white;
+}
+
+.edu line, .work line {
+  stroke: black;
+  stroke-opacity: 0.4;
+}
+
+.edu rect, .work rect {
+  fill-opacity: 0.8;
+}
+
+.events line {
+  stroke-dasharray: 3mm;
+  stroke-opacity: 0.5;
+}
+
+.txtBkgrnd rect {
+  fill: white;
+  fill-opacity: 0.8;
+  stroke: black;
+  stroke-width: 1px;
+  stroke-opacity: 0.4;
+}
+
+body {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-size: 0.8em;
+  
+}
+    
+  </style>
+</head>
+
+<body>
+  <script>
+    // Feel free to change or delete any of the code you see!
+    var svg = d3.select("body").append("svg");
+    
+    d3.selection.prototype.moveToFront = function() {
+			return this.each(function(){
+				this.parentNode.appendChild(this);
+			});
+		};
+		
+		var adjustX = function(i) {
+			return ((workEduTextDist - 25) + (i%3 * 25)) / Math.tan(Math.PI/4);
+		};
+		
+		var eduData = [
+			{
+				start: new Date('2008-09-01'),
+				end: new Date('2012-05-01'),
+				text: 'Master, Disaster Management'
+			},
+			{
+				start: new Date('2002-09-01'),
+				end: new Date('2003-09-01'),
+				text: 'MSc, Intelligent Systems'
+			}
+		];
+		
+		var workData = [
+			{
+				start: new Date('2004-02-01'),
+				end: new Date('2005-01-01'),
+				text: 'SFF - IT & Network admin'
+			},
+			{
+				start: new Date('2005-02-01'),
+				end: new Date('2005-05-01'),
+				text: 'SodraFot - Web developer'
+			},
+			{
+				start: new Date('2005-05-01'),
+				end: new Date('2008-01-01'),
+				text: 'Kentor - Consultant'
+			},
+			{
+				start: new Date('2008-01-01'),
+				end: new Date('2008-08-01'),
+				text: 'Famento - Web developer'
+			},
+			{
+				start: new Date('2009-05-01'),
+				end: new Date('2011-10-01'),
+				text: 'UNOPS - Web developer'
+			},
+			{
+				start: new Date('2011-10-01'),
+				end: new Date('2014-10-01'),
+				text: 'Capgemini - Senior consultant'
+			},
+			{
+				start: new Date('2014-10-01'),
+				end: new Date('2016-08-01'),
+				text: 'Consid - Senior consultant'
+			},
+      {
+        start: new Date('2016-08-01'),
+				end: new Date(),
+				text: 'Aftonbladet - Data visualization & FE'
+			}
+		];
+		
+		var eventData = [
+			{ date: new Date('2012-04-20'), text: 'MSB Field staff, Disaster Response, induction course' },
+			{ date: new Date('2014-08-15'), text: 'OpenKnowledge Festival' },
+    	{ date: new Date('2009-09-09'), text: 'First child born' },
+      { date: new Date('2011-11-09'), text: 'Second child born' },
+      { date: new Date('2017-08-19'), text: 'Third child born' },
+    ];
+		
+		// configuration
+		var config = {
+			left: 50,
+			right: 200,
+			top: 50,
+			bottom: 50,
+			width: 1000,
+			height: 500
+		};
+
+		var offset = 30;
+		
+		var axisYPos = config.height/2;
+		
+		var eventOffset = -200;
+		
+		var eduWorkOffset = 0;
+		
+		var workEduTextDist = 40;
+		
+		// Scales
+		var xScale = d3.time.scale()
+			.domain([new Date('2002-01-01'), new Date()])
+			.range([config.left, config.width - config.right]);
+		
+		var yScale = d3.scale.linear()
+			.domain([0, eventData.length])
+			.range([config.top, axisYPos - 20]);
+		
+		// Axes
+		var xAxis = d3.svg.axis()
+			.scale(xScale)
+			.orient("bottom");
+		
+		// Rendering
+		var svg = d3.select("svg");
+		
+		
+		// events	
+		var event = svg.append("g").classed('events', true).selectAll('event').data(eventData).enter()
+			.append('g').classed('event', true);
+			
+		event.append('line').attr({
+			x1: function(d) { return xScale(d.date); },
+			x2: function(d) { return xScale(d.date); },
+			y1: axisYPos,
+			y2: function(d,i) { return axisYPos - eventOffset - i%5 * 25; }
+		});
+		
+		var circleRadius = 5;
+		event.append("circle").attr({
+			cx: function(d) { return xScale(d.date); },
+			cy: function(d,i) { return axisYPos - eventOffset - i%5 * 25; },
+			r: circleRadius
+		});
+		
+		event.append("text").attr({
+			x: function(d) { return xScale(d.date) + circleRadius*2; },
+			y: function(d,i) { return axisYPos - eventOffset - i%5 * 25 + circleRadius; }
+		})
+		.text(function(d) { return d.text; });
+				
+		// work
+		var work = svg.append("g").classed("work", true);
+		work.append("g").classed("time", true).selectAll("rect.range")
+			.data(workData).enter()
+			.append("rect")
+				.classed("range", true)
+				.attr({
+					x: function(d) { return xScale(d.start); },
+					y: axisYPos - 20,
+					height: 20,
+					width: function(d) { return xScale(d.end) - xScale(d.start); },
+					fill: "#b44646"
+				});
+		
+		work.append("g").classed("workText", true).selectAll("text")
+			.data(workData).enter()
+			.append("text").attr({
+				x: function(d,i) { return xScale(d.start) +  adjustX(i); },
+				y: function(d,i) { return axisYPos - 20 - (workEduTextDist-25) - i%3 * 25; }
+			})
+			.text(function(d) { return d.text; })
+			.each(function(d) {
+				d.bbox = this.getBBox();
+			});
+		
+		var workLines = work.append("g").classed("workLines", true).selectAll("g")
+			.data(workData).enter()
+			.append("g");
+			
+		workLines.append("line").classed("workLine", true)
+			.attr({
+				x1: function(d) { return xScale(d.start); },
+				x2: function(d) { return xScale(d.start); },
+				y1: axisYPos,
+				y2: axisYPos - 20
+			});
+		
+		workLines.append("line").attr({
+			x1: function(d) { return xScale(d.start)},
+			x2: function(d,i) { return xScale(d.start) + adjustX(i) - 2; },
+			y1: axisYPos - 20,
+			y2: function(d,i) { return axisYPos - 20 - (workEduTextDist-25) - i%3 * 25; }
+		});
+		
+		// text background
+		work.append("g").classed("txtBkgrnd", true).selectAll("rect")
+			.data(workData).enter()
+			.append("rect")
+				.attr({
+					x: function(d) { return d.bbox.x - 2; },
+					y: function(d) { return d.bbox.y-2; },
+					width: function(d) { return d.bbox.width + 4; },
+					height: function(d) { return d.bbox.height + 4; }
+				});
+				
+		d3.selectAll(".work .workText").moveToFront();
+		
+		d3.select(".work").attr("transform", "translate(0," + (eduWorkOffset + 5) + ")");
+		
+		// education
+		var edu = svg.append("g").classed("edu", true);
+		
+		edu.selectAll('.range')
+			.data(eduData).enter()
+			.append("rect").classed("range", true).attr({
+				x: function(d) { return xScale(d.start); },
+				y: axisYPos,
+				height: 20,
+				width: function(d) { return xScale(d.end) - xScale(d.start); },
+				fill: "#4682B4"
+			});
+					
+		edu.append("g").classed("eduText", true).selectAll("text")
+			.data(eduData).enter()
+			.append("text").attr({
+				x: function(d) { return xScale(d.start) + offset; },
+				y: axisYPos + (workEduTextDist * 1.5)
+			})
+			.text(function(d) { return d.text; })
+			.each(function(d) {
+				d.bbox = this.getBBox();
+			});
+		
+		var eduLines = edu.append("g").classed("eduLine", true).selectAll("g")
+			.data(eduData).enter()
+			.append("g");
+			
+		eduLines
+			.append("line")
+			.attr({
+				x1: function(d) { return xScale(d.start); },
+				x2: function(d) { return xScale(d.start); },
+				y1: axisYPos,
+				y2: axisYPos + 20
+			});
+		
+		eduLines
+			.append("line").attr({
+				x1: function(d) { return xScale(d.start)},
+				x2: function(d) { return xScale(d.start) + offset - 2; },
+				y1: axisYPos + 20,
+				y2: axisYPos + (workEduTextDist * 1.5) + 2
+			});
+		
+		// text background
+		edu.append("g").classed("txtBkgrnd", true).selectAll("rect")
+			.data(eduData).enter()
+			.append("rect")
+				.attr({
+					x: function(d) { return d.bbox.x - 2; },
+					y: function(d) { return d.bbox.y-2; },
+					width: function(d) { return d.bbox.width + 4; },
+					height: function(d) { return d.bbox.height + 4; }
+				});
+		
+		d3.selectAll(".edu .eduText").moveToFront();
+		
+		d3.select(".edu").attr("transform", "translate(0," + (eduWorkOffset - 5) + ")");
+		
+		// axis
+		var axis = svg.append("g").classed("axis", true).call(xAxis)
+		axis.attr({
+			'transform': 'translate(0,' + axisYPos + ')'
+		})
+		.selectAll("text")  
+				.style("text-anchor", "end")
+				.attr("dx", "-.8em")
+				.attr("dy", ".15em")
+				.attr("transform", "rotate(-45)" );
+  </script>
+</body>
